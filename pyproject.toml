@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "incident-response-openenv"
@@ -8,12 +8,12 @@ version = "2.0.0"
 description = "AIOps incident-response simulation environment for RL agents"
 requires-python = ">=3.10"
 dependencies = [
+    "fastapi>=0.110.0",
+    "pydantic>=2.0.0",
+    "uvicorn>=0.29.0",
+    "requests>=2.31.0",
     "torch>=2.0.0",
     "numpy>=1.24.0",
-    "fastapi>=0.110.0",
-    "uvicorn[standard]>=0.29.0",
-    "pydantic>=2.0.0",
-    "requests>=2.31.0",
     "openai>=1.0.0",
     "httpx>=0.24.0",
     "aiofiles>=23.0.0",
@@ -21,4 +21,3 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["server*", "agent*"]
