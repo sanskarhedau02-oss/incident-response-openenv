@@ -19,9 +19,6 @@ dependencies = [
     "aiofiles>=23.0.0",
 ]
 
-[project.scripts]
-inference = "inference:main"
-
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["server*", "agent*"]
