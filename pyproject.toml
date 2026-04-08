@@ -17,7 +17,11 @@ dependencies = [
     "openai>=1.0.0",
     "httpx>=0.24.0",
     "aiofiles>=23.0.0",
+    "openenv-core>=0.2.0",
 ]
+
+[project.scripts]
+server = "server.app:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
