@@ -126,7 +126,7 @@ def list_tasks():
     }
 
 
-@app.post("/grade")
+@app.api_route("/grade", methods=["GET", "POST"])
 def grade_task(task: str = "easy"):
     """Run a grader episode for the given task — required by the hackathon evaluator."""
     from server.environment import AIOpsEnvironment, MAX_STEPS
