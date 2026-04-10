@@ -234,6 +234,27 @@ def grade_task(task: str = "easy"):
 
     return best_result
 
+@app.get("/benchmark")
+def benchmark():
+    """Run grader on all 3 tasks and return combined results — useful for judges."""
+    results = {}
+    total_passed = 0
+
+    for task in ["easy", "medium", "hard"]:
+        result = grade_task(task)
+        results[task] = result
+        if result.get("passed"):
+            total_passed += 1
+
+    return {
+        "summary": {
+            "total_tasks": 3,
+            "passed": total_passed,
+            "failed": 3 - total_passed,
+            "all_passed": total_passed == 3,
+        },
+        "results": results
+    }
 
 if __name__ == "__main__":
     main()
