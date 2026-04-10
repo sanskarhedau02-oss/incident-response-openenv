@@ -135,17 +135,16 @@ def grade_task(task: str = "easy"):
     if task not in thresholds:
         return {"error": f"Unknown task: {task}. Choose from easy, medium, hard."}
 
-    # Run 3 episodes and take the best score (reduces stochastic variance)
     best_score = 0.0
     best_result = {}
 
     for seed in [42, 7, 13]:
-        env = AIOpsEnvironment(task=task, stochastic=False)  # deterministic for grading
+        env = AIOpsEnvironment(task=task, stochastic=False)
         obs = env.reset()
 
         total_reward = 0.0
         steps_taken = 0
-        rollback_done = False
+        rollback_count = 0
         scale_done = False
         flush_done = False
 
@@ -157,33 +156,49 @@ def grade_task(task: str = "easy"):
 
             action = {"action_type": "noop", "target": None}
 
-            # Priority 1: restart any unhealthy service
-            restarted = False
-            for svc in ["auth-service", "api", "cache", "db"]:
-                if services.get(svc) not in ("healthy", None):
-                    action = {"action_type": "restart_service", "target": svc}
-                    restarted = True
-                    break
-
-            if not restarted:
-                # Priority 2: rollback if error rate is high (do once)
-                if error_rate > 0.15 and not rollback_done:
+            if task == "hard":
+                # Hard task: rollback FIRST to kill error rate, then fix services
+                if error_rate > 0.3 and rollback_count < 2:
                     action = {"action_type": "rollback", "target": None}
-                    rollback_done = True
-                # Priority 3: scale up if CPU is high (do once)
+                    rollback_count += 1
+                elif error_rate > 0.1 and rollback_count < 3:
+                    action = {"action_type": "rollback", "target": None}
+                    rollback_count += 1
                 elif cpu > 70 and not scale_done:
                     action = {"action_type": "scale_up", "target": None}
                     scale_done = True
-                # Priority 4: flush cache if latency is high (do once)
                 elif latency > 600 and not flush_done:
                     action = {"action_type": "flush_cache", "target": None}
                     flush_done = True
-                # Priority 5: rollback again if error rate still high
-                elif error_rate > 0.1:
-                    action = {"action_type": "rollback", "target": None}
-                # Priority 6: scale again if CPU still high
-                elif cpu > 60:
-                    action = {"action_type": "scale_up", "target": None}
+                else:
+                    # Now restart unhealthy services
+                    for svc in ["auth-service", "api", "cache", "db"]:
+                        if services.get(svc) not in ("healthy", None):
+                            action = {"action_type": "restart_service", "target": svc}
+                            break
+            else:
+                # Easy / Medium logic (already working)
+                restarted = False
+                for svc in ["auth-service", "api", "cache", "db"]:
+                    if services.get(svc) not in ("healthy", None):
+                        action = {"action_type": "restart_service", "target": svc}
+                        restarted = True
+                        break
+
+                if not restarted:
+                    if error_rate > 0.15 and rollback_count < 2:
+                        action = {"action_type": "rollback", "target": None}
+                        rollback_count += 1
+                    elif cpu > 70 and not scale_done:
+                        action = {"action_type": "scale_up", "target": None}
+                        scale_done = True
+                    elif latency > 600 and not flush_done:
+                        action = {"action_type": "flush_cache", "target": None}
+                        flush_done = True
+                    elif error_rate > 0.1:
+                        action = {"action_type": "rollback", "target": None}
+                    elif cpu > 60:
+                        action = {"action_type": "scale_up", "target": None}
 
             obs, reward, done, info = env.step(action)
             total_reward += reward
