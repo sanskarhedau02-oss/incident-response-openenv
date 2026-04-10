@@ -99,5 +99,83 @@ def main():
     import uvicorn
     uvicorn.run("server.app:app", host="0.0.0.0", port=7860, reload=False)
 
+@app.get("/tasks")
+def list_tasks():
+    """List all tasks with grader info — required by the hackathon evaluator."""
+    return {
+        "tasks": [
+            {
+                "id": "easy",
+                "description": "Single service down, low CPU, low error rate",
+                "grader": True,
+                "passing_threshold": 0.5
+            },
+            {
+                "id": "medium",
+                "description": "CPU spike, elevated error rate and latency, all services up",
+                "grader": True,
+                "passing_threshold": 0.4
+            },
+            {
+                "id": "hard",
+                "description": "Multi-service failure, cascading error rate, SEV-1 scenario",
+                "grader": True,
+                "passing_threshold": 0.3
+            }
+        ]
+    }
+
+
+@app.post("/grade")
+def grade_task(task: str = "easy"):
+    """Run a grader episode for the given task — required by the hackathon evaluator."""
+    from server.environment import AIOpsEnvironment, MAX_STEPS
+
+    thresholds = {"easy": 0.5, "medium": 0.4, "hard": 0.3}
+    if task not in thresholds:
+        return {"error": f"Unknown task: {task}. Choose from easy, medium, hard."}
+
+    env = AIOpsEnvironment(task=task)
+    obs = env.reset()
+
+    total_reward = 0.0
+    steps_taken = 0
+
+    for _ in range(MAX_STEPS):
+        # Heuristic agent for grading
+        services = obs.get("services", {})
+        cpu = obs.get("cpu_usage", 0)
+        error_rate = obs.get("error_rate", 0)
+        latency = obs.get("latency_ms", 0)
+
+        action = {"action_type": "noop", "target": None}
+        for svc in ["auth-service", "api", "cache", "db"]:
+            if services.get(svc) not in ("healthy", None):
+                action = {"action_type": "restart_service", "target": svc}
+                break
+        else:
+            if cpu > 80:
+                action = {"action_type": "scale_up", "target": None}
+            elif latency > 800:
+                action = {"action_type": "flush_cache", "target": None}
+            elif error_rate > 0.25:
+                action = {"action_type": "rollback", "target": None}
+
+        obs, reward, done, info = env.step(action)
+        total_reward += reward
+        steps_taken += 1
+        if done:
+            break
+
+    score = round(min(max(total_reward / max(steps_taken, 1), 0.0), 1.0), 4)
+
+    return {
+        "task": task,
+        "score": score,
+        "reward": round(total_reward, 4),
+        "steps": steps_taken,
+        "passed": score >= thresholds[task]
+    }
+
 if __name__ == "__main__":
     main()
