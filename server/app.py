@@ -167,7 +167,7 @@ def grade_task(task: str = "easy"):
         if done:
             break
 
-    score = round(min(max(total_reward / max(steps_taken, 1), 0.0), 1.0), 4)
+    score = round(min(max(total_reward / 20.0, 0.0), 1.0), 4)
 
     return {
         "task": task,
