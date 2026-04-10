@@ -234,6 +234,11 @@ def grade_task(task: str = "easy"):
 
     return best_result
 
+@app.api_route("/grader", methods=["GET", "POST"])
+def grader(task: str = "easy"):
+    """Alias for /grade — matches OpenEnv spec endpoint name."""
+    return grade_task(task)
+
 @app.get("/benchmark")
 def benchmark():
     """Run grader on all 3 tasks and return combined results — useful for judges."""
