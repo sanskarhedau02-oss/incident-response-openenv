@@ -68,10 +68,10 @@ tasks:
       metric: score
       range: [0.0, 1.0]
       passing_threshold: 0.5
-      method: >
-        Score is computed as mean per-step reward clamped to [0, 1].
-        Episode passes when all services are healthy, cpu_usage < 60,
-        error_rate < 0.1, and latency_ms < 500 within 20 steps.
+      endpoint: /grade
+      method: GET
+      params:
+        task: easy
 
   - id: medium
     description: CPU spike, elevated error rate and latency, all services up
@@ -79,21 +79,21 @@ tasks:
       metric: score
       range: [0.0, 1.0]
       passing_threshold: 0.4
-      method: >
-        Same scoring as easy. Partial credit awarded proportional to
-        the improvement in cpu_usage, error_rate, and latency_ms
-        relative to initial values.
+      endpoint: /grade
+      method: GET
+      params:
+        task: medium
 
   - id: hard
     description: Multi-service failure, cascading error rate, SEV-1 scenario
     grader:
       metric: score
       range: [0.0, 1.0]
-      passing_threshold: 0.3
-      method: >
-        Same scoring as easy/medium. Agent must restore multiple downed
-        services while managing cascading failures within a tighter
-        restart budget. Full score requires restoring all four services.
+      passing_threshold: 0.2
+      endpoint: /grade
+      method: GET
+      params:
+        task: hard
 
 env_vars:
   API_BASE_URL:
