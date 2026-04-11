@@ -1,115 +1,19 @@
+spec_version: 1
 name: ai_ops_env
-version: "2.0.0"
-description: >
-  AI-driven incident-response environment. An autonomous agent observes
-  a production system under stress and applies remediation actions to
-  restore all services to a healthy state within a step budget.
-
-author: "Sanskar Hedau"
-
-tags:
-  - openenv
-  - aiops
-  - incident-response
-  - real-world
-  - reinforcement-learning
+type: environment
+runtime: docker
+app: server.app:app
+port: 7860
 
 tasks:
   - id: easy
     description: "Single service down, low CPU, low error rate"
-    difficulty: easy
-    max_steps: 20
-    scoring: "0.0–1.0 mean per-step reward"
+    grader: true
 
   - id: medium
     description: "CPU spike, elevated error rate and latency, all services up"
-    difficulty: medium
-    max_steps: 20
-    scoring: "0.0–1.0 mean per-step reward"
+    grader: true
 
   - id: hard
     description: "Multi-service failure, cascading error rate, SEV-1 scenario"
-    difficulty: hard
-    max_steps: 20
-    scoring: "0.0–1.0 mean per-step reward"
-
-observation_space:
-  incident_id: "string — unique incident identifier"
-  services: "dict — map of service_name to status (healthy|down|degraded)"
-  cpu_usage: "float — CPU usage percentage [0, 100]"
-  memory_usage: "float — memory usage percentage [0, 100]"
-  error_rate: "float — error rate [0, 1]"
-  latency_ms: "float — latency in milliseconds"
-  incident_severity: "int — severity level [1=low, 2=medium, 3=high]"
-  alert_count: "int — number of active alerts"
-  logs: "list[string] — recent log entries"
-  step_count: "int — current step number"
-
-action_space:
-  action_type: "string — restart_service | scale_up | rollback | flush_cache | escalate | noop"
-  target: "string (nullable) — required for restart_service: auth-service | api | db | cache"
-
-reward:
-  type: continuous
-  range: [-1.0, 1.0]
-  shaping:
-    - "+0.35 restart_service (unhealthy service)"
-    - "+0.25 scale_up"
-    - "+0.40 rollback"
-    - "+0.15 flush_cache"
-    - "+0.05 per-step health bonus (up to 0.15)"
-    - "-0.80 escalate"
-    - "-0.05 invalid action"
-
-endpoints:
-  - path: /reset
-    method: POST
-    description: Start a new episode
-
-  - path: /step
-    method: POST
-    description: Apply an action to the environment
-
-  - path: /state
-    method: GET
-    description: Get current raw state
-
-  - path: /observation
-    method: GET
-    description: Get normalised 12-float observation vector
-
-  - path: /tasks
-    method: GET
-    description: List all tasks with grader info
-
-  - path: /grader
-    method: POST
-    description: Grade a task without running a full episode
-
-  - path: /benchmark
-    method: GET
-    description: Run grader on all 3 tasks and return combined results
-
-  - path: /health
-    method: GET
-    description: Health check
-
-runtime:
-  framework: FastAPI
-  python: "3.11"
-  docker: true
-  hf_spaces: true
-
-env_vars:
-  API_BASE_URL:
-    description: "OpenAI-compatible API base URL for LLM inference"
-    required: true
-    example: "https://api.openai.com/v1"
-  MODEL_NAME:
-    description: "Model identifier to use for LLM inference calls"
-    required: true
-    example: "meta-llama/Llama-3-8b-instruct"
-  HF_TOKEN:
-    description: "Hugging Face / API bearer token"
-    required: true
-    example: "hf_xxxxxxxxxxxxxxxxxxxx"
+    grader: true
