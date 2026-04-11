@@ -1,0 +1,20 @@
+[
+  {
+    "id": "incident_1",
+    "input": "User reports suspicious email asking for credentials",
+    "expected_output": "phishing",
+    "grader": "exact_match"
+  },
+  {
+    "id": "incident_2",
+    "input": "Multiple failed login attempts detected from unknown IP",
+    "expected_output": "brute_force",
+    "grader": "exact_match"
+  },
+  {
+    "id": "incident_3",
+    "input": "System files encrypted and ransom note displayed",
+    "expected_output": "ransomware",
+    "grader": "exact_match"
+  }
+]
