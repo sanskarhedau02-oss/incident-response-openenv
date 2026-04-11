@@ -326,15 +326,14 @@ def run_benchmark(task: str, mode: str, agent, n_episodes: int) -> dict:
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run inference on AIOps environment")
-    parser.add_argument("--task",       default="easy",   choices=["easy", "medium", "hard"])
-    parser.add_argument("--mode",       default="llm",    choices=["llm", "heuristic", "dqn"])
+    parser.add_argument("--task", default="all", choices=["easy", "medium", "hard", "all"])
+    parser.add_argument("--mode", default="llm", choices=["llm", "heuristic", "dqn"])
     parser.add_argument("--checkpoint", default="checkpoints/best_model.pt")
-    parser.add_argument("--episodes",   type=int, default=1)
-    parser.add_argument("--device",     default="cpu")
-    parser.add_argument("--output",     default=None, help="Save results JSON to this path")
+    parser.add_argument("--episodes", type=int, default=1)
+    parser.add_argument("--device", default="cpu")
+    parser.add_argument("--output", default=None, help="Save results JSON to this path")
     args = parser.parse_args()
 
-    # Print active config (helpful for debugging in CI)
     print(f"[CONFIG] API_BASE_URL={API_BASE_URL}", flush=True)
     print(f"[CONFIG] MODEL_NAME={MODEL_NAME}", flush=True)
     print(f"[CONFIG] HF_TOKEN={'set' if HF_TOKEN else 'NOT SET'}", flush=True)
@@ -345,9 +344,15 @@ if __name__ == "__main__":
         if agent is None:
             args.mode = "heuristic"
 
-    results = run_benchmark(args.task, args.mode, agent, args.episodes)
+    # Run all 3 tasks by default so evaluator sees grader scores for each
+    tasks_to_run = ["easy", "medium", "hard"] if args.task == "all" else [args.task]
+
+    all_results = []
+    for task in tasks_to_run:
+        results = run_benchmark(task, args.mode, agent, args.episodes)
+        all_results.extend(results["results"])
 
     if args.output:
         with open(args.output, "w") as f:
-            json.dump(results, f, indent=2)
+            json.dump({"results": all_results}, f, indent=2)
         print(f"Results saved → {args.output}")
