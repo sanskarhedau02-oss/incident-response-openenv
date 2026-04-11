@@ -1,20 +1,20 @@
 [
   {
-    "id": "incident_1",
-    "input": "User reports suspicious email asking for credentials",
-    "expected_output": "phishing",
+    "id": "task_easy",
+    "input": "auth-service is down",
+    "expected_output": "restart_service:auth-service",
     "grader": "exact_match"
   },
   {
-    "id": "incident_2",
-    "input": "Multiple failed login attempts detected from unknown IP",
-    "expected_output": "brute_force",
+    "id": "task_medium",
+    "input": "cpu usage is high",
+    "expected_output": "scale_up",
     "grader": "exact_match"
   },
   {
-    "id": "incident_3",
-    "input": "System files encrypted and ransom note displayed",
-    "expected_output": "ransomware",
+    "id": "task_hard",
+    "input": "latency is very high",
+    "expected_output": "flush_cache",
     "grader": "exact_match"
   }
 ]
